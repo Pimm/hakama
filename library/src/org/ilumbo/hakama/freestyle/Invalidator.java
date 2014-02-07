@@ -42,6 +42,7 @@ public final class Invalidator extends Thread {
 	 */
 	private final View target;
 	public Invalidator(View target) {
+		// The thread name is "Invalidator", unless this thread is obfuscated, in which case the thread name is as well.
 		super(Invalidator.class.getSimpleName());
 		this.target = target;
 		job = JOB_INVALIDATE;

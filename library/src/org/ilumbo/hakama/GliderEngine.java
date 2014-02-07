@@ -1,5 +1,7 @@
 package org.ilumbo.hakama;
 
+import org.ilumbo.hakama.interpolation.ElapsedFactorInterpolator;
+
 import android.view.View;
 
 /**
@@ -9,15 +11,15 @@ public abstract class GliderEngine {
 	/**
 	 * Determines the value at a certain point in time during a glide.
 	 */
-	protected static final class ValueDeterminer {
+	protected static abstract class ValueDeterminer {
 		/**
 		 * The amount that is to be added to the start value at the end time.
 		 */
-		private final double delta;
+		protected final double delta;
 		/**
 		 * The duration of the glide, in nanoseconds.
 		 */
-		private final double duration;
+		protected final double duration;
 		/**
 		 * The time at which the glide is completed, and at which the value equals the start value plus the delta.
 		 */
@@ -25,11 +27,11 @@ public abstract class GliderEngine {
 		/**
 		 * The value at the start time.
 		 */
-		private final double startValue;
+		protected final double startValue;
 		/**
 		 * The time at which the glide starts, and at which the value equals the start value.
 		 */
-		private final long startTime;
+		protected final long startTime;
 		public ValueDeterminer(double startValue, double endValue, long startTime, long duration) {
 			delta = endValue - (this.startValue = startValue);
 			this.startTime = startTime;
@@ -39,12 +41,44 @@ public abstract class GliderEngine {
 		/**
 		 * Returns the value for the passed time.
 		 */
+		public abstract double determineValue(long time);
+	}
+	/**
+	 * Determines the value at a certain point in time during a non-linear glide.
+	 */
+	protected static final class LinearValueDeterminer extends ValueDeterminer {
+		public LinearValueDeterminer(double startValue, double endValue, long startTime, long duration) {
+			super(startValue, endValue, startTime, duration);
+		}
+		@Override
 		public final double determineValue(long time) {
-			final double factor = (time - startTime) / duration;
-			if (factor >= 1) {
+			final double elapsedFactor = (time - startTime) / duration;
+			if (elapsedFactor >= 1) {
 				return startValue + delta;
 			}
-			return startValue + delta * factor;
+			return startValue + delta * elapsedFactor;
+		}
+	}
+	/**
+	 * Determines the value at a certain point in time during an interpolated glide. The glide could be, and probably is,
+	 * non-linear.
+	 */
+	protected static final class InterpolatedValueDeterminer extends ValueDeterminer {
+		/**
+		 * Used to interpolate the elapsed factor.
+		 */
+		private final ElapsedFactorInterpolator interpolator;
+		public InterpolatedValueDeterminer(double startValue, double endValue, long startTime, long duration, ElapsedFactorInterpolator interpolator) {
+			super(startValue, endValue, startTime, duration);
+			this.interpolator = interpolator;
+		}
+		@Override
+		public final double determineValue(long time) {
+			final double elapsedFactor = (time - startTime) / duration;
+			if (elapsedFactor >= 1) {
+				return startValue + delta;
+			}
+			return startValue + delta * interpolator.interpolate(elapsedFactor);
 		}
 	}
 	/**
@@ -74,19 +108,46 @@ public abstract class GliderEngine {
 	 */
 	public abstract double getValue();
 	/**
-	 * Glides the value from the passed start value to the passed end value. The passed speed is the amount that would be added
-	 * to the start value or substracted from it every second to reach the end value, if the glide were linear.
+	 * Glides the value from the passed start value to the passed end value. The passed speed is the amount that is added to
+	 * the start value or substracted from it every second to reach the end value.
 	 *
 	 * Calling this method ends any previously started glides.
 	 *
-	 * If the appropriate flag is set, the view passed to the constructor of the glider will be invalidated immediately. This
+	 * If the appropriate flag is set, the view passed to the constructor of the engine will be invalidated immediately. This
 	 * is useful if the start value does not equal the current one, and you want the start value to be shown without delay.
 	 * Regardless of whether that flag is set, calling this method causes the view to be invalidated at some point in the
 	 * future. The view must then obtain the current value from this glider and use it for drawing.
 	 */
-	public abstract void glide(double startValue, double endValue, double averageSpeed, boolean invalidateImmediately);
+	public void glide(double startValue, double endValue, double speed, boolean invalidateImmediately) {
+		glide(new LinearValueDeterminer(startValue, endValue, System.nanoTime(),
+				determineDuration(startValue, endValue, speed)), invalidateImmediately);
+	}
+	/**
+	 * Glides the value from the passed start value to the passed end value, and does so in an interpolated fashion using the
+	 * passed interpolator. The passed speed is the amount that would be added to the start value or substracted from it every
+	 * second to reach the end value, if the glide were linear.
+	 *
+	 * Calling this method ends any previously started glides.
+	 *
+	 * If the appropriate flag is set, the view passed to the constructor of the engine will be invalidated immediately. This
+	 * is useful if the start value does not equal the current one, and you want the start value to be shown without delay.
+	 * Regardless of whether that flag is set, calling this method causes the view to be invalidated at some point in the
+	 * future. The view must then obtain the current value from this glider and use it for drawing.
+	 *
+	 * Because interpolators are most likely stateless, you should consider re-using the same one instead of creating a new one
+	 * for every glide.
+	 */
+	public void glide(double startValue, double endValue, double averageSpeed, ElapsedFactorInterpolator interpolator, boolean invalidateImmediately) {
+		glide(new InterpolatedValueDeterminer(startValue, endValue, System.nanoTime(),
+				determineDuration(startValue, endValue, averageSpeed), interpolator), invalidateImmediately);
+	}
+	protected abstract void glide(ValueDeterminer newValueDeterminer, boolean invalidateImmediately);
 	/**
 	 * Sets the value to the passed value, ending any previously started glides.
+	 *
+	 * If the appropriate flag is set, the view passed to the constructor of the glider will be invalidated immediately. That
+	 * is probably what you want. Besides that guarantee, you should not make any assumptions about the number of times said
+	 * view is invalidated after this method is called: even an ended glide might still cause the view to be invalidated.
 	 */
-	public abstract void stop(double value, boolean invalidateImmediately);
+	public abstract void stop(double value, boolean invalidate);
 }

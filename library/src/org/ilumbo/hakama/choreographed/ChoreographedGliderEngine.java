@@ -48,11 +48,9 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 		}
 		return result;
 	}
-	@Override
-	public synchronized final void glide(double startValue, double endValue, double averageSpeed, boolean invalidateImmediately) {
-		// Create the value determiner.
-		valueDeterminer = new ValueDeterminer(startValue, endValue, System.nanoTime(),
-				determineDuration(startValue, endValue, averageSpeed));
+	protected synchronized final void glide(ValueDeterminer newValueDeterminer, boolean invalidateImmediately) {
+		// Save the value determiner. This might overwrite an existing value determiner (of a less recently started glide).
+		valueDeterminer = newValueDeterminer;
 		// If the flag is set, invalidate the view immediately.
 		if (invalidateImmediately) {
 			if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
@@ -67,14 +65,14 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 		}
 	}
 	@Override
-	public synchronized final void stop(double value, boolean invalidateImmediately) {
+	public synchronized final void stop(double value, boolean invalidate) {
 		// null out any value determiner that might exist. The doFrame method might still be called (once), but that method
 		// will soon enough find that the value determiner is gone.
 		valueDeterminer = null;
 		// Save the passed value.
 		this.value = value;
-		// If the flag is set, invalidate the view immediately.
-		if (invalidateImmediately) {
+		// If the flag is set, invalidate the view.
+		if (invalidate) {
 			if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
 				invalidatee.invalidate();
 			} else /* if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) */ {

@@ -53,16 +53,15 @@ public final class FreestyleGliderEngine extends GliderEngine {
 		}
 		return value;
 	}
-	@Override
-	public synchronized final void glide(double startValue, double endValue, double averageSpeed, boolean invalidateImmediately) {
+	protected synchronized final void glide(ValueDeterminer newValueDeterminer, boolean invalidateImmediately) {
 		// If an invalidator was already present, set the job to stop and clear it out. It might still invalidate the view
 		// (once), which is OK: the getValue method will simply use the value determiner created below.
 		if (null != invalidator) {
 			invalidator.setJob(Invalidator.JOB_STOP);
 		}
-		// Create the value determiner.
-		valueDeterminer = new ValueDeterminer(startValue, endValue, System.nanoTime(),
-				determineDuration(startValue, endValue, averageSpeed));
+		// Save the value determiner. If an invalidator was present, this line will overwrite an existing value determiner (of
+		// a less recently started glide).
+		valueDeterminer = newValueDeterminer;
 		// Create the invalidator.
 		invalidator = new Invalidator(invalidatee);
 		// If the flag is set, invalidate the view immediately.
@@ -78,7 +77,7 @@ public final class FreestyleGliderEngine extends GliderEngine {
 		}
 	}
 	@Override
-	public synchronized final void stop(double value, boolean invalidateImmediately) {
+	public synchronized final void stop(double value, boolean invalidate) {
 		// If an invalidator was present, set the job to stop and clear it out. It might still invalidate the view (once),
 		// which is OK: the getValue method will simply return the fixed value set below.
 		if (null != invalidator) {
@@ -88,8 +87,8 @@ public final class FreestyleGliderEngine extends GliderEngine {
 		}
 		// Save the passed value as the fixed value.
 		fixedValue = value;
-		// If the flag is set, invalidate the view immediately.
-		if (invalidateImmediately) {
+		// If the flag is set, invalidate the view.
+		if (invalidate) {
 			if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
 				invalidatee.invalidate();
 			} else /* if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) */ {
