@@ -22,6 +22,12 @@ public abstract class Glider {
 	 */
 	protected final GliderEngine engine;
 	public Glider(View invalidatee, double initialValue) {
+		// Check whether the invalidatee is null right now, because if it actually is null a NullPointerException will not be
+		// thrown until the engine tries to invalidate. That might be somewhere completely different from where the glider was
+		// constructed. If so, it is not obvious that passing the null to the constructor was the cause.
+		if (null == invalidatee) {
+			throw new IllegalArgumentException("The invalidatee must be non-null");
+		}
 		// Construct an engine. Use the choreographed one if the Android version of the device is 16 (jelly bean) or higher, as
 		// that engine has neater integration with the Android framework. Use the freestyle one if the choreographed one is not
 		// available.
