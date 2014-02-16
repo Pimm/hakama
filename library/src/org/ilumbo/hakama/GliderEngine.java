@@ -52,6 +52,9 @@ public abstract class GliderEngine {
 		}
 		@Override
 		public final double determineValue(long time) {
+			if (time <= startTime) {
+				return startValue;
+			}
 			final double elapsedFactor = (time - startTime) / duration;
 			if (elapsedFactor >= 1) {
 				return startValue + delta;
@@ -74,6 +77,9 @@ public abstract class GliderEngine {
 		}
 		@Override
 		public final double determineValue(long time) {
+			if (time <= startTime) {
+				return startValue;
+			}
 			final double elapsedFactor = (time - startTime) / duration;
 			if (elapsedFactor >= 1) {
 				return startValue + delta;
