@@ -40,6 +40,10 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 		}
 	}
 	@Override
+	public final boolean getIsGliding() {
+		return null != valueDeterminer;
+	}
+	@Override
 	public synchronized final double getValue() {
 		final double result = value;
 		// If a glide is happening, ensure this engine is notified when the next frame starts.

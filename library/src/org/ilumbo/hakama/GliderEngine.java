@@ -101,6 +101,12 @@ public abstract class GliderEngine {
 		return Math.round((distance / averageSpeed) * 1e9);
 	}
 	/**
+	 * Returns true if a glide is happening, and false otherwise. This method should be called after the getValue method: the
+	 * getValue might update internal state causing this method to be more accurate. This method might be useful for applying
+	 * some logic when a glide is over.
+	 */
+	public abstract boolean getIsGliding();
+	/**
 	 * Returns the current value. The view passed to the constructor of the glider should use this method to obtain the current
 	 * value.
 	 *
@@ -141,6 +147,9 @@ public abstract class GliderEngine {
 		glide(new InterpolatedValueDeterminer(startValue, endValue, System.nanoTime(),
 				determineDuration(startValue, endValue, averageSpeed), interpolator), invalidateImmediately);
 	}
+	/**
+	 * Derivative classes should either implement this method, or leave this one blank implement the two public glide methods.
+	 */
 	protected abstract void glide(ValueDeterminer newValueDeterminer, boolean invalidateImmediately);
 	/**
 	 * Sets the value to the passed value, ending any previously started glides.
