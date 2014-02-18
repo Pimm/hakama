@@ -53,8 +53,11 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 		return result;
 	}
 	protected synchronized final void glide(ValueDeterminer newValueDeterminer, boolean invalidateImmediately) {
+		// Set the value to the start value of the value determiner. The getValue method might me called before the doFrame
+		// method is called. Setting the value ensures the expected result is returned.
+		value = 
 		// Save the value determiner. This might overwrite an existing value determiner (of a less recently started glide).
-		valueDeterminer = newValueDeterminer;
+				(valueDeterminer = newValueDeterminer).startValue;
 		// If the flag is set, invalidate the view immediately.
 		if (invalidateImmediately) {
 			if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {

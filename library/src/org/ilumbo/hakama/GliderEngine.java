@@ -27,7 +27,7 @@ public abstract class GliderEngine {
 		/**
 		 * The value at the start time.
 		 */
-		protected final double startValue;
+		public final double startValue;
 		/**
 		 * The time at which the glide starts, and at which the value equals the start value.
 		 */
