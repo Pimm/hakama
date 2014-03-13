@@ -39,13 +39,14 @@ public final class FreestyleGliderEngine extends GliderEngine {
 			final long time = System.nanoTime();
 			value = valueDeterminer.determineValue(time);
 			// Check whether the glide is now completed. Set the job of the invalidator to stop and clear out the value
-			// determiner and invalidator. Note that this check only considers the time. The glide could be completed before
-			// the time reaches the end time, because the time is close tto the end time and the value is somehow rounded. This
-			// check does not optimise for such a situation.
+			// determiner and invalidator while setting the end value as the fixed value. Note that this check only considers
+			// the time. The glide could be completed before the time reaches the end time, because the time is close to the
+			// end time and the value is somehow rounded. This check does not optimise for such a situation.
 			if (time > valueDeterminer.endTime) {
 				invalidator.setJob(Invalidator.JOB_STOP);
 				valueDeterminer = null;
 				invalidator = null;
+				fixedValue = value;
 			// If the glide is not completed yet, set the job of the invalidator to invalidate again so the view is again
 			// invalidated at some point in the future. Start the invalidator if it hasn't been started before.
 			} else /* if (time <= valueDeterminer.endTime) */ {
