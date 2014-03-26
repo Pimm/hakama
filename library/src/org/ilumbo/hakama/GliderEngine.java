@@ -25,15 +25,21 @@ public abstract class GliderEngine {
 		 */
 		public final long endTime;
 		/**
-		 * The value at the start time.
+		 * The value at the end time. If this value is required, use it instead of adding {@link ValueDeterminer#startValue}
+		 * and {@link ValueDeterminer#delta}. Adding those two values would in theory produce the same value, but doing so
+		 * might introduce rounding errors.
 		 */
-		public final double startValue;
+		public final double endValue;
 		/**
 		 * The time at which the glide starts, and at which the value equals the start value.
 		 */
 		protected final long startTime;
+		/**
+		 * The value at the start time.
+		 */
+		public final double startValue;
 		public ValueDeterminer(double startValue, double endValue, long startTime, long duration) {
-			delta = endValue - (this.startValue = startValue);
+			delta = (this.endValue = endValue) - (this.startValue = startValue);
 			this.startTime = startTime;
 			this.duration = duration;
 			endTime = startTime + duration;
@@ -107,11 +113,10 @@ public abstract class GliderEngine {
 		return Math.round((distance / averageSpeed) * 1e9);
 	}
 	/**
-	 * Returns true if a glide is happening, and false otherwise. This method should be called after the getValue method: the
-	 * getValue might update internal state causing this method to be more accurate. This method might be useful for applying
-	 * some logic when a glide is over.
+	 * Returns the end value. In other words, returns the value {@link GliderEngine#getValue()} would return if an infinite
+	 * amount of time would pass.
 	 */
-	public abstract boolean getIsGliding();
+	public abstract double getEndValue();
 	/**
 	 * Returns the current value. The view passed to the constructor of the glider should use this method to obtain the current
 	 * value.

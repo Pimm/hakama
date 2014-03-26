@@ -25,8 +25,12 @@ public final class FreestyleGliderEngine extends GliderEngine {
 		fixedValue = initialValue;
 	}
 	@Override
-	public final boolean getIsGliding() {
-		return null != valueDeterminer;
+	public final double getEndValue() {
+		if (null != valueDeterminer) {
+			return valueDeterminer.endValue;
+		} else /* if (null == valueDeterminer) */ {
+			return fixedValue;
+		}
 	}
 	@Override
 	public synchronized final double getValue() {

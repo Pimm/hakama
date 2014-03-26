@@ -40,8 +40,12 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 		}
 	}
 	@Override
-	public final boolean getIsGliding() {
-		return null != valueDeterminer;
+	public final double getEndValue() {
+		if (null != valueDeterminer) {
+			return valueDeterminer.endValue;
+		} else /* if (null == valueDeterminer) */ {
+			return value;
+		}
 	}
 	@Override
 	public synchronized final double getValue() {
