@@ -62,26 +62,24 @@ public final class Invalidator extends Thread {
 	@Override
 	public final void run() {
 		while (true) {
-			// Invalidate.
 			SystemClock.sleep(INVALIDATE_SLEEP_TIME);
-			target.postInvalidate();
-			// Set the job to wait, if it was still set to invalidate. If the job has been set to stop, leave it at stop.
 			synchronized (this) {
-				if (JOB_INVALIDATE == job) {
-					job = JOB_WAIT;
-				}
-			}
-			// Wait until the job changes to something else.
-			while (true) {
-				SystemClock.sleep(CHECK_SLEEP_TIME);
-				if (JOB_WAIT != job) {
+				// If the job has been set to stop, break out of the loop (which stops this invalidator thread).
+				if (JOB_STOP == job) {
 					break;
 				}
+				// Invalidate.
+				target.postInvalidate();
+				// Set the job to wait. The invalidation initiated above will call the onDraw method of the target view.
+				// Providing that the glider is used correctly, said onDraw method will call the getValue method of the glider
+				// engine which in turn will set the job back to invalidate or to stop at some point in the future (but after
+				// this synchronized block).
+				job = JOB_WAIT;
 			}
-			// If the job has been set to stop, at any point, break and stop this thread.
-			if (JOB_STOP == job) {
-				break;
-			}
+			// Wait for/until the job changes to something else.
+			do {
+				SystemClock.sleep(CHECK_SLEEP_TIME);
+			} while (JOB_WAIT == job);
 		}
 	}
 }
