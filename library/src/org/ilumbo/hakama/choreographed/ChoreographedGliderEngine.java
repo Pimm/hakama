@@ -12,7 +12,7 @@ import android.view.View;
  * The default engine for Android versions with a choreographer.
  */
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-public final class ChoreographedGliderEngine extends GliderEngine implements FrameCallback {
+public final class ChoreographedGliderEngine extends GliderEngine implements FrameCallback, Runnable {
 	/**
 	 * The value that is returned.
 	 */
@@ -35,8 +35,6 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 			if (frameTime > valueDeterminer.endTime) {
 				valueDeterminer = null;
 			}
-			// Invalidate the view.
-			invalidatee.invalidate();
 		}
 	}
 	@Override
@@ -50,45 +48,38 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 	@Override
 	public synchronized final double getValue() {
 		final double result = value;
-		// If a glide is happening, ensure this engine is notified when the next frame starts.
+		// If a glide is happening, ensure this engine is notified when the next frame starts and invalidate the view so it is
+		// drawn again at some point in the future.
 		if (null != valueDeterminer) {
 			Choreographer.getInstance().postFrameCallback(this);
+			invalidatee.invalidate();
 		}
 		return result;
 	}
-	protected synchronized final void glide(ValueDeterminer newValueDeterminer, boolean invalidateImmediately) {
+	protected synchronized final void glide(ValueDeterminer newValueDeterminer) {
 		// Set the value to the start value of the value determiner. The getValue method might me called before the doFrame
 		// method is called. Setting the value ensures the expected result is returned.
 		value = 
 		// Save the value determiner. This might overwrite an existing value determiner (of a less recently started glide).
 				(valueDeterminer = newValueDeterminer).startValue;
-		// If the flag is set, invalidate the view immediately.
-		if (invalidateImmediately) {
-			if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
-				invalidatee.invalidate();
-			} else /* if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) */ {
-				invalidatee.postInvalidate();
-			}
-		// If the flag is not set, ensure this engine is notified when the next frame starts. When this happens, the value will
-		// be determined and the view will be invalidated.
-		} else /* if (false == invalidateImmediately) */ {
+		// Ensure this engine is notified when the next frame starts. When this happens, the value will be determined and the
+		// view will be invalidated.
+		if (null != android.os.Looper.myLooper()) {
 			Choreographer.getInstance().postFrameCallback(this);
+		} else /* if (null != android.os.Looper.myLooper()) */ {
+			invalidatee.post(this);
 		}
 	}
 	@Override
-	public synchronized final void stop(double value, boolean invalidate) {
+	public final void run() {
+		Choreographer.getInstance().postFrameCallback(this);
+	}
+	@Override
+	public synchronized final void stop(double value) {
 		// null out any value determiner that might exist. The doFrame method might still be called (once), but that method
 		// will soon enough find that the value determiner is gone.
 		valueDeterminer = null;
 		// Save the passed value.
 		this.value = value;
-		// If the flag is set, invalidate the view.
-		if (invalidate) {
-			if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
-				invalidatee.invalidate();
-			} else /* if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) */ {
-				invalidatee.postInvalidate();
-			}
-		}
 	}
 }

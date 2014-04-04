@@ -21,7 +21,7 @@ public final class AlphaPaintGlider extends Glider {
 	 * glide from 0 (fully transparent) to 255 (fully opaque) in 255 milliseconds.
 	 */
 	public synchronized final void glide(int endAlpha, double speed) {
-		engine.glide(target.getAlpha(), endAlpha, speed, false);
+		engine.glide(target.getAlpha(), endAlpha, speed);
 	}
 	/**
 	 * Glides the alpha of the paint passed to the constructor from the one pased value to the other. The passed speed is the
@@ -29,7 +29,7 @@ public final class AlphaPaintGlider extends Glider {
 	 * glide from 0 (fully transparent) to 255 (fully opaque) in 255 milliseconds.
 	 */
 	public synchronized final void glide(int startAlpha, int endAlpha, double speed) {
-		engine.glide(startAlpha, endAlpha, speed, true);
+		engine.glide(startAlpha, endAlpha, speed);
 	}
 	/**
 	 * Returns the paint whose alpha this glider changes. The alpha of the returned paint is updated.

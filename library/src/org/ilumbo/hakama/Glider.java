@@ -8,13 +8,13 @@ import android.view.View;
 
 /**
  * Makes glides happen. Derivative classes should use the (protected) engine to initiate and stop glides, as well as to obtain
- * the current value whenever the view passed to the constructor in invalidated.
+ * the current value whenever the view passed to the constructor is drawn.
  *
  * Under the hood, gliding works like this:
- * 1) A glide is initiated by calling a method of the glider.
- * 2) The glider invalidates the view that presents the glide.
- * 3) The onDraw imlementation of the view interacts with the glider, and draws the current state of the glide.
- *    During the interaction from step 3, the glider jumps back to step 2, creating a loop.
+ * 1) A glide is initiated by calling a method of the glider, and the view that presents the glide is invalidated.
+ * 2) The onDraw implementation of the view interacts with the glider, and draws the current state of the glide.
+ * 3) During the interaction from step 2, the glider checks whether the glide is completed. If not, it invalidates the view
+ *    that presents the glide. Because said view is invalidated, step 2 will happen once again.
  */
 public abstract class Glider {
 	/**

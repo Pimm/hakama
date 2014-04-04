@@ -118,8 +118,9 @@ public abstract class GliderEngine {
 	 */
 	public abstract double getEndValue();
 	/**
-	 * Returns the current value. The view passed to the constructor of the glider should use this method to obtain the current
-	 * value.
+	 * Returns the current value. The view passed to the constructor of the glider must use this method to obtain the current
+	 * value in its onDraw implementation. This method should not be called from anywhere else, especially not from another
+	 * thread.
 	 *
 	 * If the value is currently being glided, calling this method will invalidate said view at some point in the future.
 	 */
@@ -130,14 +131,11 @@ public abstract class GliderEngine {
 	 *
 	 * Calling this method ends any previously started glides.
 	 *
-	 * If the appropriate flag is set, the view passed to the constructor of the engine will be invalidated immediately. This
-	 * is useful if the start value does not equal the current one, and you want the start value to be shown without delay.
-	 * Regardless of whether that flag is set, calling this method causes the view to be invalidated at some point in the
-	 * future. The view must then obtain the current value from this glider and use it for drawing.
+	 * You should invalidate the view passed to the constructor after starting a new glide.
 	 */
-	public void glide(double startValue, double endValue, double speed, boolean invalidateImmediately) {
+	public void glide(double startValue, double endValue, double speed) {
 		glide(new LinearValueDeterminer(startValue, endValue, System.nanoTime(),
-				determineDuration(startValue, endValue, speed)), invalidateImmediately);
+				determineDuration(startValue, endValue, speed)));
 	}
 	/**
 	 * Glides the value from the passed start value to the passed end value, and does so in an interpolated fashion using the
@@ -146,28 +144,26 @@ public abstract class GliderEngine {
 	 *
 	 * Calling this method ends any previously started glides.
 	 *
-	 * If the appropriate flag is set, the view passed to the constructor of the engine will be invalidated immediately. This
-	 * is useful if the start value does not equal the current one, and you want the start value to be shown without delay.
-	 * Regardless of whether that flag is set, calling this method causes the view to be invalidated at some point in the
-	 * future. The view must then obtain the current value from this glider and use it for drawing.
+	 * You should invalidate the view passed to the constructor after starting a new glide.
 	 *
 	 * Because interpolators are most likely stateless, you should consider re-using the same one instead of creating a new one
 	 * for every glide.
 	 */
-	public void glide(double startValue, double endValue, double averageSpeed, ElapsedFactorInterpolator interpolator, boolean invalidateImmediately) {
+	public void glide(double startValue, double endValue, double averageSpeed, ElapsedFactorInterpolator interpolator) {
 		glide(new InterpolatedValueDeterminer(startValue, endValue, System.nanoTime(),
-				determineDuration(startValue, endValue, averageSpeed), interpolator), invalidateImmediately);
+				determineDuration(startValue, endValue, averageSpeed), interpolator));
 	}
 	/**
 	 * Derivative classes should either implement this method, or leave this one blank implement the two public glide methods.
 	 */
-	protected abstract void glide(ValueDeterminer newValueDeterminer, boolean invalidateImmediately);
+	protected abstract void glide(ValueDeterminer newValueDeterminer);
 	/**
 	 * Sets the value to the passed value, ending any previously started glides.
 	 *
-	 * If the appropriate flag is set, the view passed to the constructor of the glider will be invalidated immediately. That
-	 * is probably what you want. Besides that guarantee, you should not make any assumptions about the number of times said
-	 * view is invalidated after this method is called: even an ended glide might still cause the view to be invalidated.
+	 * You should invalidate the view passed to the constructor after ending a glide.
+	 *
+	 * No assumptions should be made about the number of times the view passed to the constructor is invalidated after this
+	 * method is called: even an ended glide might still cause the view to be invalidated.
 	 */
-	public abstract void stop(double value, boolean invalidate);
+	public abstract void stop(double value);
 }

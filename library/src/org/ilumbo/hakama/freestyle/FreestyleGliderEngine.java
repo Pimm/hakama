@@ -54,15 +54,17 @@ public final class FreestyleGliderEngine extends GliderEngine {
 			// If the glide is not completed yet, set the job of the invalidator to invalidate again so the view is again
 			// invalidated at some point in the future. Start the invalidator if it hasn't been started before.
 			} else /* if (time <= valueDeterminer.endTime) */ {
-				invalidator.setJob(Invalidator.JOB_INVALIDATE);
 				if (false == invalidator.started) {
 					invalidator.start();
+					// (If the has not been started before, the job is already set to invalidate.)
+				} else /* if (invalidator.started) */ {
+					invalidator.setJob(Invalidator.JOB_INVALIDATE);
 				}
 			}
 		}
 		return value;
 	}
-	protected synchronized final void glide(ValueDeterminer newValueDeterminer, boolean invalidateImmediately) {
+	protected synchronized final void glide(ValueDeterminer newValueDeterminer) {
 		// If an invalidator was already present, set the job to stop and clear it out. It might still invalidate the view
 		// (once), which is OK: the getValue method will simply use the value determiner created below.
 		if (null != invalidator) {
@@ -71,22 +73,12 @@ public final class FreestyleGliderEngine extends GliderEngine {
 		// Save the value determiner. If an invalidator was present, this line will overwrite an existing value determiner (of
 		// a less recently started glide).
 		valueDeterminer = newValueDeterminer;
-		// Create the invalidator.
+		// Create the invalidator. It will not be started now; instead it will be started the next time the view is drawn. See
+		// the getValue method.
 		invalidator = new Invalidator(invalidatee);
-		// If the flag is set, invalidate the view immediately.
-		if (invalidateImmediately) {
-			if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
-				invalidatee.invalidate();
-			} else /* if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) */ {
-				invalidatee.postInvalidate();
-			}
-		// If the flag is not set, simply start the invalidator which will invalidate the view at some point in the future.
-		} else /* if (false == invalidateImmediately) */ {
-			invalidator.start();
-		}
 	}
 	@Override
-	public synchronized final void stop(double value, boolean invalidate) {
+	public synchronized final void stop(double value) {
 		// If an invalidator was present, set the job to stop and clear it out. It might still invalidate the view (once),
 		// which is OK: the getValue method will simply return the fixed value set below.
 		if (null != invalidator) {
@@ -96,13 +88,5 @@ public final class FreestyleGliderEngine extends GliderEngine {
 		}
 		// Save the passed value as the fixed value.
 		fixedValue = value;
-		// If the flag is set, invalidate the view.
-		if (invalidate) {
-			if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
-				invalidatee.invalidate();
-			} else /* if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) */ {
-				invalidatee.postInvalidate();
-			}
-		}
 	}
 }
