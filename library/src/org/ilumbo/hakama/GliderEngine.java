@@ -134,6 +134,12 @@ public abstract class GliderEngine {
 	 * You should invalidate the view passed to the constructor after starting a new glide.
 	 */
 	public void glide(double startValue, double endValue, double speed) {
+		// If the start and end values are equal, use the stop method instead. The stop method is probably a lot faster than
+		// the glide method because the latter might require a few expensive objects to be created.
+		if (startValue == endValue) {
+			stop(endValue);
+			return;
+		}
 		glide(new LinearValueDeterminer(startValue, endValue, System.nanoTime(),
 				determineDuration(startValue, endValue, speed)));
 	}
@@ -146,10 +152,16 @@ public abstract class GliderEngine {
 	 *
 	 * You should invalidate the view passed to the constructor after starting a new glide.
 	 *
-	 * Because interpolators are most likely stateless, you should consider re-using the same one instead of creating a new one
+	 * Since interpolators are most likely stateless, you should consider re-using the same one instead of creating a new one
 	 * for every glide.
 	 */
 	public void glide(double startValue, double endValue, double averageSpeed, ElapsedFactorInterpolator interpolator) {
+		// If the start and end values are equal, use the stop method instead. The stop method is probably a lot faster than
+		// the glide method because the latter might require a few expensive objects to be created.
+		if (startValue == endValue) {
+			stop(endValue);
+			return;
+		}
 		glide(new InterpolatedValueDeterminer(startValue, endValue, System.nanoTime(),
 				determineDuration(startValue, endValue, averageSpeed), interpolator));
 	}
