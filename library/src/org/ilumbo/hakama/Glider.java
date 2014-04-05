@@ -21,7 +21,7 @@ public abstract class Glider {
 	 * The engine this glider uses, which does all of the hard work.
 	 */
 	protected final GliderEngine engine;
-	public Glider(View invalidatee, double initialValue) {
+	protected Glider(View invalidatee, double initialValue) {
 		// Check whether the invalidatee is null right now, because if it actually is null a NullPointerException will not be
 		// thrown until the engine tries to invalidate. That might be somewhere completely different from where the glider was
 		// constructed. If so, it is not obvious that passing the null to the constructor was the cause.
