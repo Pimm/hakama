@@ -5,6 +5,27 @@ package org.ilumbo.hakama.interpolation;
  * Changes the fraction fast at the start, overshoots the 1 to finally restore back to 1 slowly.
  *
  * Instances hold no state other than the tension.
+ *
+ *                             ooooooooooooooooo                   
+ *                        ooooo                 oooooooooo         
+ * ····················ooo································ooooooooo
+ *                  ooo                                            
+ *                oo                                               
+ *              oo                                                 
+ *             o                                                   
+ *           oo                                                    
+ *          o                                                      
+ *         o                                                       
+ *       oo                                                        
+ *      o                                                          
+ *     o                                                           
+ *    o                                                            
+ *   o                                                             
+ *  o                                                              
+ * o                                                               
+ * ································································
+ *                                                                 
+ *                                                                 
  */
 public class OvershootInterpolator implements ElapsedFactorInterpolator {
 	/**

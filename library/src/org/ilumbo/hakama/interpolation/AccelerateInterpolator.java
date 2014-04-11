@@ -4,6 +4,27 @@ package org.ilumbo.hakama.interpolation;
  * Changes the fraction slowly at the start and fast at the end.
  *
  * Instances are stateless, hence can safely be re-used.
+ *
+ *                                                                 
+ *                                                                 
+ * ·······························································o
+ *                                                             ooo 
+ *                                                          ooo    
+ *                                                       ooo       
+ *                                                     oo          
+ *                                                  ooo            
+ *                                               ooo               
+ *                                            ooo                  
+ *                                        oooo                     
+ *                                     ooo                         
+ *                                 oooo                            
+ *                             oooo                                
+ *                         oooo                                    
+ *                   oooooo                                        
+ *            ooooooo                                              
+ * ooooooooooo·····················································
+ *                                                                 
+ *                                                                 
  */
 public final class AccelerateInterpolator implements ElapsedFactorInterpolator {
 	public static final class Static {
