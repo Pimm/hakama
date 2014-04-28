@@ -38,7 +38,7 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 		}
 	}
 	@Override
-	public final double getEndValue() {
+	public synchronized final double getEndValue() {
 		if (null != valueDeterminer) {
 			return valueDeterminer.endValue;
 		} else /* if (null == valueDeterminer) */ {
@@ -56,12 +56,14 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 		}
 		return result;
 	}
-	protected synchronized final void glide(ValueDeterminer newValueDeterminer) {
-		// Set the value to the start value of the value determiner. The getValue method might me called before the doFrame
-		// method is called. Setting the value ensures the expected result is returned.
-		value = 
-		// Save the value determiner. This might overwrite an existing value determiner (of a less recently started glide).
-				(valueDeterminer = newValueDeterminer).startValue;
+	protected final void glide(ValueDeterminer newValueDeterminer) {
+		synchronized (this) {
+			// Set the value to the start value of the value determiner. The getValue method might me called before the doFrame
+			// method is called. Setting the value ensures the expected result is returned.
+			value = 
+			// Save the value determiner. This might overwrite an existing value determiner (of a less recently started glide).
+					(valueDeterminer = newValueDeterminer).startValue;
+		}
 		// Ensure this engine is notified when the next frame starts. When this happens, the value will be determined and the
 		// view will be invalidated.
 		if (null != android.os.Looper.myLooper()) {
