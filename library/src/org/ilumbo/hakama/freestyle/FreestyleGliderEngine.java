@@ -25,7 +25,7 @@ public final class FreestyleGliderEngine extends GliderEngine {
 		fixedValue = initialValue;
 	}
 	@Override
-	public final double getEndValue() {
+	public synchronized final double getEndValue() {
 		if (null != valueDeterminer) {
 			return valueDeterminer.endValue;
 		} else /* if (null == valueDeterminer) */ {
@@ -73,6 +73,8 @@ public final class FreestyleGliderEngine extends GliderEngine {
 		// Save the value determiner. If an invalidator was present, this line will overwrite an existing value determiner (of
 		// a less recently started glide).
 		valueDeterminer = newValueDeterminer;
+		// The fixed value could be set to NaN. It will not be used as long as valueDeterminer is non-null.
+		/* fixedValue = Double.NaN; */
 		// Create the invalidator. It will not be started now; instead it will be started the next time the view is drawn. See
 		// the getValue method.
 		invalidator = new Invalidator(invalidatee);
