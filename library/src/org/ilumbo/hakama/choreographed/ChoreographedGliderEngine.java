@@ -14,6 +14,11 @@ import android.view.View;
 @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 public final class ChoreographedGliderEngine extends GliderEngine implements FrameCallback, Runnable {
 	/**
+	 * Whether the invalidatee should be invalidated when the new frame starts. true if getValue was called (thus onDraw of the
+	 * invalidatee was called), but no new frame was started yet. false otherwise.
+	 */
+	private boolean invalidateOnFrame;
+	/**
 	 * The value that is returned.
 	 */
 	private double value;
@@ -35,6 +40,11 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 			if (frameTime > valueDeterminer.endTime) {
 				valueDeterminer = null;
 			}
+			// Invalidate, if the flag is set.
+			if (invalidateOnFrame) {
+				invalidatee.invalidate();
+				invalidateOnFrame = false;
+			}
 		}
 	}
 	@Override
@@ -48,11 +58,11 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 	@Override
 	public synchronized final double getValue() {
 		final double result = value;
-		// If a glide is happening, ensure this engine is notified when the next frame starts and invalidate the view so it is
-		// drawn again at some point in the future.
+		// If a glide is happening, ensure this engine is notified when the next frame starts and invalidate the view during
+		// that notification.
 		if (null != valueDeterminer) {
+			invalidateOnFrame = true;
 			Choreographer.getInstance().postFrameCallback(this);
-			invalidatee.invalidate();
 		}
 		return result;
 	}
@@ -64,8 +74,7 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 			// Save the value determiner. This might overwrite an existing value determiner (of a less recently started glide).
 					(valueDeterminer = newValueDeterminer).startValue;
 		}
-		// Ensure this engine is notified when the next frame starts. When this happens, the value will be determined and the
-		// view will be invalidated.
+		// Ensure this engine is notified when the next frame starts. When this happens, the value will be determined.
 		if (null != android.os.Looper.myLooper()) {
 			Choreographer.getInstance().postFrameCallback(this);
 		} else /* if (null != android.os.Looper.myLooper()) */ {
