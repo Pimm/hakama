@@ -18,8 +18,8 @@ import android.view.View;
  */
 public abstract class Glider {
 	/**
-	 * On Android versions without a choreographer, use a thread-based freestyle engine. This behaviour is the default, and
-	 * causes the glider to behave similarly across all devices.
+	 * On Android versions without a choreographer, use a freestyle engine. This behaviour is the default, and causes the
+	 * glider to behave similarly across all devices.
 	 */
 	protected static final boolean LEGACY_BEHAVIOR_FREESTYLE = true;
 	/**
