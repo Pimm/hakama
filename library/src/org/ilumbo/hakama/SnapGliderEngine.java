@@ -33,6 +33,14 @@ public final class SnapGliderEngine extends GliderEngine {
 		value = endValue;
 	}
 	@Override
+	public void glide(double startValue, double endValue, long startTime, double speed) {
+		value = endValue;
+	}
+	@Override
+	public final void glide(double startValue, double endValue, double averageSpeed, long startTime, ElapsedFactorInterpolator interpolator) {
+		value = endValue;
+	}
+	@Override
 	protected final void glide(ValueDeterminer newValueDeterminer) {
 		throw new UnsupportedOperationException();
 	}

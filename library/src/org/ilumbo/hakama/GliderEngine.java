@@ -2,6 +2,7 @@ package org.ilumbo.hakama;
 
 import org.ilumbo.hakama.interpolation.ElapsedFactorInterpolator;
 
+import android.os.SystemClock;
 import android.view.View;
 
 /**
@@ -21,7 +22,8 @@ public abstract class GliderEngine {
 		 */
 		protected final double duration;
 		/**
-		 * The time at which the glide is completed, and at which the value equals the start value plus the delta.
+		 * The time at which the glide is completed, and at which the value equals the start value plus the delta, in the
+		 * {@link System#nanoTime()} time base.
 		 */
 		public final long endTime;
 		/**
@@ -31,7 +33,8 @@ public abstract class GliderEngine {
 		 */
 		public final double endValue;
 		/**
-		 * The time at which the glide starts, and at which the value equals the start value.
+		 * The time at which the glide starts, and at which the value equals the start value, in the {@link System#nanoTime()}
+		 * time base.
 		 */
 		protected final long startTime;
 		/**
@@ -140,8 +143,11 @@ public abstract class GliderEngine {
 			stop(endValue);
 			return;
 		}
-		glide(new LinearValueDeterminer(startValue, endValue, System.nanoTime(),
-				determineDuration(startValue, endValue, speed)));
+		glide(new LinearValueDeterminer(
+				startValue, endValue,
+				System.nanoTime(),
+				determineDuration(startValue, endValue, speed)
+		));
 	}
 	/**
 	 * Glides the value from the passed start value to the passed end value, and does so in an interpolated fashion using the
@@ -162,8 +168,63 @@ public abstract class GliderEngine {
 			stop(endValue);
 			return;
 		}
-		glide(new InterpolatedValueDeterminer(startValue, endValue, System.nanoTime(),
-				determineDuration(startValue, endValue, averageSpeed), interpolator));
+		glide(new InterpolatedValueDeterminer(
+				startValue, endValue,
+				System.nanoTime(),
+				determineDuration(startValue, endValue, averageSpeed),
+				interpolator
+		));
+	}
+	/**
+	 * Glides the value from the passed start value to the passed end value. The passed speed is the amount that is added to
+	 * the start value or substracted from it every second to reach the end value. The passed time is the time at which the
+	 * glide should have started, and should probably be close to the current time. Said time is in the
+	 * {@link SystemClock#uptimeMillis()} time base.
+	 *
+	 * Calling this method ends any previously started glides.
+	 *
+	 * You should invalidate the view passed to the constructor after starting a new glide.
+	 */
+	public void glide(double startValue, double endValue, long startTime, double speed) {
+		// If the start and end values are equal, use the stop method instead. The stop method is probably a lot faster than
+		// the glide method because the latter might require a few expensive objects to be created.
+		if (startValue == endValue) {
+			stop(endValue);
+			return;
+		}
+		glide(new LinearValueDeterminer(
+				startValue, endValue,
+				System.nanoTime() + (startTime - SystemClock.uptimeMillis()) * 1000000,
+				determineDuration(startValue, endValue, speed)
+		));
+	}
+	/**
+	 * Glides the value from the passed start value to the passed end value, and does so in an interpolated fashion using the
+	 * passed interpolator. The passed speed is the amount that would be added to the start value or substracted from it every
+	 * second to reach the end value, if the glide were linear. The passed time is the time at which the glide should have
+	 * started, and should probably be close to the current time. Said time is in the {@link SystemClock#uptimeMillis()} time
+	 * base.
+	 *
+	 * Calling this method ends any previously started glides.
+	 *
+	 * You should invalidate the view passed to the constructor after starting a new glide.
+	 *
+	 * Since interpolators are most likely stateless, you should consider re-using the same one instead of creating a new one
+	 * for every glide.
+	 */
+	public void glide(double startValue, double endValue, double averageSpeed, long startTime, ElapsedFactorInterpolator interpolator) {
+		// If the start and end values are equal, use the stop method instead. The stop method is probably a lot faster than
+		// the glide method because the latter might require a few expensive objects to be created.
+		if (startValue == endValue) {
+			stop(endValue);
+			return;
+		}
+		glide(new InterpolatedValueDeterminer(
+				startValue, endValue,
+				System.nanoTime() + (startTime - SystemClock.uptimeMillis()) * 1000000,
+				determineDuration(startValue, endValue, averageSpeed),
+				interpolator
+		));
 	}
 	/**
 	 * Derivative classes should either implement this method, or leave this one blank implement the two public glide methods.
