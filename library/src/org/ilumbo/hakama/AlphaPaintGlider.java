@@ -6,19 +6,19 @@ import android.view.View;
 /**
  * Glides the alpha channel of a paint, and encapsulates that paint as well.
  */
-public final class AlphaPaintGlider extends Glider {
+public class AlphaPaintGlider extends Glider {
 	/**
 	 * The paint whose alpha is changed.
 	 */
-	private final Paint target;
+	protected final Paint target;
 	public AlphaPaintGlider(Paint target, View invalidatee) {
 		super(invalidatee, target.getAlpha());
 		this.target = target;
 	}
 	/**
 	 * Glides the alpha of the paint passed to the constructor from its current value to the passed value. The passed speed is
-	 * the amount that is added to or substracted from the initial alpha every second. If a speed of 1 is passed, the alpha could
-	 * glide from 0 (fully transparent) to 255 (fully opaque) in 255 milliseconds.
+	 * the amount that is added to or substracted from the initial alpha every second. If a speed of 1 is passed, the alpha
+	 * could glide from 0 (fully transparent) to 255 (fully opaque) in 255 milliseconds.
 	 */
 	public synchronized final void glide(int endAlpha, double speed) {
 		engine.glide(target.getAlpha(), endAlpha, speed);
