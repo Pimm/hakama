@@ -57,8 +57,8 @@ public final class FreestyleGliderEngine extends GliderEngine {
 			}
 		}
 		// If the glide is not completed yet, invalidate so the view is drawn again at some point in the future. (This
-		// commented if block should have been placed inside the synchronized block. It is nice to have the invalidate call
-		// outside of that block, though.)
+		// commented if block should have been placed inside the synchronized block if it weren't commented out. It is nice
+		// to have the invalidate call outside of that block, though.)
 		/* if (null != valueDeterminer) { */
 			invalidatee.invalidate();
 		/* } */
