@@ -26,48 +26,63 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 	 * The value determiner that is used to return the value whilst gliding.
 	 */
 	private ValueDeterminer valueDeterminer;
+	/**
+	 * Hold this lock to access {@link #valueDeterminer}, {@link #value} or {@link #invalidateOnFrame}.
+	 */
+	private final Object stateLock;
 	public ChoreographedGliderEngine(View invalidatee, double initialValue) {
 		super(invalidatee);
 		value = initialValue;
+		stateLock = new Object();
 	}
 	@Override
-	public synchronized final void doFrame(long frameTime) {
-		// If a glide is happening (which is most likely is, otherwise this method would probably not be called), determine
-		// the value at the frame time using the value determiner.
-		if (null != valueDeterminer) {
-			value = valueDeterminer.determineValue(frameTime);
-			// Check whether the glide is now completed. null out the value determiner if so.
-			if (frameTime > valueDeterminer.endTime) {
-				valueDeterminer = null;
-			}
-			// Invalidate, if the flag is set.
-			if (invalidateOnFrame) {
-				invalidatee.invalidate();
-				invalidateOnFrame = false;
+	public final void doFrame(long frameTime) {
+		synchronized (stateLock) {
+			// If a glide is happening (which is most likely is, otherwise this method would probably not be called), determine
+			// the value at the frame time using the value determiner.
+			if (null != valueDeterminer) {
+				value = valueDeterminer.determineValue(frameTime);
+				// Check whether the glide is now completed. null out the value determiner if so.
+				if (frameTime > valueDeterminer.endTime) {
+					valueDeterminer = null;
+				}
+				// Invalidate, if the flag is set.
+				if (invalidateOnFrame) {
+					invalidatee.invalidate();
+					invalidateOnFrame = false;
+				}
 			}
 		}
 	}
 	@Override
-	public synchronized final double getEndValue() {
-		if (null != valueDeterminer) {
-			return valueDeterminer.endValue;
-		} else /* if (null == valueDeterminer) */ {
-			return value;
+	public final double getEndValue() {
+		synchronized (stateLock) {
+			if (null != valueDeterminer) {
+				return valueDeterminer.endValue;
+			} else /* if (null == valueDeterminer) */ {
+				return value;
+			}
 		}
 	}
 	@Override
-	public synchronized final double getValue() {
-		final double result = value;
-		// If a glide is happening, ensure this engine is notified when the next frame starts and invalidate the view during
-		// that notification.
-		if (null != valueDeterminer) {
-			invalidateOnFrame = true;
+	public final double getValue() {
+		final double result;
+		final boolean postFrameCallback;
+		synchronized (stateLock) {
+			result = value;
+			// If a glide is happening, ensure this engine is notified when the next frame starts and invalidate the view
+			// during that notification.
+			if (postFrameCallback = (null != valueDeterminer)) {
+				invalidateOnFrame = true;
+			}
+		}
+		if (postFrameCallback) {
 			Choreographer.getInstance().postFrameCallback(this);
 		}
 		return result;
 	}
 	protected final void glide(ValueDeterminer newValueDeterminer) {
-		synchronized (this) {
+		synchronized (stateLock) {
 			// Set the value to the start value of the value determiner. The getValue method might me called before the doFrame
 			// method is called. Setting the value ensures the expected result is returned.
 			value = 
@@ -86,11 +101,13 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 		Choreographer.getInstance().postFrameCallback(this);
 	}
 	@Override
-	public synchronized final void stop(double value) {
-		// null out any value determiner that might exist. The doFrame method might still be called (once), but that method
-		// will soon enough find that the value determiner is gone.
-		valueDeterminer = null;
-		// Save the passed value.
-		this.value = value;
+	public final void stop(double value) {
+		synchronized (stateLock) {
+			// null out any value determiner that might exist. The doFrame method might still be called (once), but that method
+			// will soon enough find that the value determiner is gone.
+			valueDeterminer = null;
+			// Save the passed value.
+			this.value = value;
+		}
 	}
 }

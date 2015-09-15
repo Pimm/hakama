@@ -13,25 +13,32 @@ public final class FreestyleGliderEngine extends GliderEngine {
 	 */
 	private double fixedValue;
 	/**
-	 * The value determiner that is used to return the value whilst gliding. null otherwise.
+	 * The value determiner that is used to return the value whilst gliding. {@code null} otherwise.
 	 */
 	private ValueDeterminer valueDeterminer;
+	/**
+	 * Hold this lock to access {@link #valueDeterminer} or {@link #fixedValue}.
+	 */
+	private final Object stateLock;
 	public FreestyleGliderEngine(View invalidatee, double initialValue) {
 		super(invalidatee);
 		fixedValue = initialValue;
+		stateLock = new Object();
 	}
 	@Override
-	public synchronized final double getEndValue() {
-		if (null != valueDeterminer) {
-			return valueDeterminer.endValue;
-		} else /* if (null == valueDeterminer) */ {
-			return fixedValue;
+	public final double getEndValue() {
+		synchronized (stateLock) {
+			if (null != valueDeterminer) {
+				return valueDeterminer.endValue;
+			} else /* if (null == valueDeterminer) */ {
+				return fixedValue;
+			}
 		}
 	}
 	@Override
 	public final double getValue() {
 		final double result;
-		synchronized (this) {
+		synchronized (stateLock) {
 			// If no glide is happening, use the fixed value.
 			if (null == valueDeterminer) {
 				return fixedValue;
@@ -57,19 +64,23 @@ public final class FreestyleGliderEngine extends GliderEngine {
 		/* } */
 		return result;
 	}
-	protected synchronized final void glide(ValueDeterminer newValueDeterminer) {
-		// Save the value determiner. This line might overwrite an existing value determiner (of a less recently started
-		// glide).
-		valueDeterminer = newValueDeterminer;
-		// The fixed value could be set to NaN. It will not be used as long as valueDeterminer is non-null.
-		/* fixedValue = Double.NaN; */
+	protected final void glide(ValueDeterminer newValueDeterminer) {
+		synchronized (stateLock) {
+			// Save the value determiner. This line might overwrite an existing value determiner (of a less recently started
+			// glide).
+			valueDeterminer = newValueDeterminer;
+			// The fixed value could be set to NaN. It will not be used as long as valueDeterminer is non-null.
+			/* fixedValue = Double.NaN; */
+		}
 	}
 	@Override
-	public synchronized final void stop(double value) {
-		// null out the value determiner. The view might still be drawn again (once) because of the now stopped glide, which is
-		// OK: the getValue method will simply return the fixed value set below.
-		valueDeterminer = null;
-		// Save the passed value as the fixed value.
-		fixedValue = value;
+	public final void stop(double value) {
+		synchronized (stateLock) {
+			// null out the value determiner. The view might still be drawn again (once) because of the now stopped glide,
+			// which is OK: the getValue method will simply return the fixed value set below.
+			valueDeterminer = null;
+			// Save the passed value as the fixed value.
+			fixedValue = value;
+		}
 	}
 }
