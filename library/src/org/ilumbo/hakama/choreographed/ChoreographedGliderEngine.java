@@ -35,6 +35,9 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 		value = initialValue;
 		stateLock = new Object();
 	}
+	/**
+	 * @hide
+	 */
 	@Override
 	public final void doFrame(long frameTime) {
 		synchronized (stateLock) {
@@ -96,6 +99,9 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 			invalidatee.post(this);
 		}
 	}
+	/**
+	 * @hide
+	 */
 	@Override
 	public final void run() {
 		Choreographer.getInstance().postFrameCallback(this);
