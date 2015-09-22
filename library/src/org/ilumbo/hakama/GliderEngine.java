@@ -227,7 +227,7 @@ public abstract class GliderEngine {
 		));
 	}
 	/**
-	 * Derivative classes should either implement this method, or leave this one blank implement the two public glide methods.
+	 * Derivative classes should either implement this method, or leave this one blank implement the four public glide methods.
 	 */
 	protected abstract void glide(ValueDeterminer newValueDeterminer);
 	/**
