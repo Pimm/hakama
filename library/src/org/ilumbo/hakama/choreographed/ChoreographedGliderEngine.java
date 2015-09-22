@@ -95,7 +95,7 @@ public final class ChoreographedGliderEngine extends GliderEngine implements Fra
 		// Ensure this engine is notified when the next frame starts. When this happens, the value will be determined.
 		if (null != android.os.Looper.myLooper()) {
 			Choreographer.getInstance().postFrameCallback(this);
-		} else /* if (null != android.os.Looper.myLooper()) */ {
+		} else /* if (null == android.os.Looper.myLooper()) */ {
 			invalidatee.post(this);
 		}
 	}
